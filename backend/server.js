@@ -1,5 +1,8 @@
+import dns from "node:dns";
+// This line fixes the querySrv ECONNREFUSED DNS bug
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
+
 import express from "express";
-import path from "path";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import seedRouter from "./routes/seedRoutes.js";
@@ -10,13 +13,16 @@ import uploadRouter from "./routes/uploadRoutes.js";
 
 dotenv.config();
 
+// This line fixes the Mongoose deprecation warning
+mongoose.set('strictQuery', false);
+
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("connected to db");
   })
   .catch((err) => {
-    console.log(err.message);
+    console.log("Database connection error: ", err.message);
   });
 
 const app = express();
@@ -37,11 +43,11 @@ app.use("/api/products", productRouter);
 app.use("/api/users", userRouter);
 app.use("/api/orders", orderRouter);
 
-const __dirname = path.resolve();
-app.use(express.static(path.join(__dirname, "/frontend/build")));
-app.get("*", (req, res) =>
-  res.sendFile(path.join(__dirname, "/frontend/build/index.html"))
-);
+// Removed the static frontend serving code here. Nginx handles this now!
+// Health check route for the container
+app.get("/", (req, res) => {
+  res.send("Server is ready and running!");
+});
 
 app.use((err, req, res, next) => {
   res.status(500).send({ message: err.message });
