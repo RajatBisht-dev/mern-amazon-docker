@@ -14,7 +14,7 @@ services:
     build: ./frontend
     container_name: amazona_frontend
     ports:
-      - "3000:80" # Maps your computer's port 3000 to the container's Nginx port 80
+      - "80:80"  # Changes the external "door" from 3000 to 80
     depends_on:
       - backend
     restart: unless-stopped
